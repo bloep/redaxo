@@ -36,6 +36,7 @@ if (rex_request('article_id', 'int') == 0) {
 
 if (rex::isBackend() && rex::getUser()) {
     rex_view::addJsFile($this->getAssetsUrl('linkmap.js'));
+    rex_view::addJsFile($this->getAssetsUrl('rex-link.js'));
 
     rex_extension::register('PAGE_SIDEBAR', function () {
         $category_id = rex_request('category_id', 'int');

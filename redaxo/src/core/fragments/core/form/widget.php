@@ -20,6 +20,8 @@ foreach ($this->elements as $element) {
 
     $out .= '</div>';
 
+    $out .= '<rex-link rex-var="1" article-id="1" article-name="Test"></rex-link>';
+
     $out .= $after;
 }
 
