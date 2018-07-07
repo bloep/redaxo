@@ -26,12 +26,16 @@ class rex_logger_debug extends rex_logger
     {
         $levelType = is_int($level) ? self::getLogLevel($level) : $level;
 
-        if (in_array($levelType, [LogLevel::NOTICE, LogLevel::INFO])) {
-            ChromePhp::log($message);
+        $instance = rex_debug::getInstance();
+
+        if (in_array($levelType, [LogLevel::NOTICE])) {
+            $instance->notice($message);
+        } elseif (in_array($levelType, [LogLevel::INFO])) {
+            $instance->info($message);
         } elseif (in_array($levelType, [LogLevel::WARNING])) {
-            ChromePhp::warn($message);
+            $instance->warning($message);
         } else {
-            ChromePhp::error($message);
+            $instance->error($message);
         }
 
         parent::log($level, $message, $context, $file, $line);

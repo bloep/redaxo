@@ -1,6 +1,10 @@
 package: debug
-version: '0.1.0'
-author: Markus Staab
+version: '1.0.0'
+author: 'Markus Staab, Marcel Kuhmann'
 supportpage: www.redaxo.org/de/forum/
 
 load: early
+
+page:
+    title: 'Debug'
+    icon: rex-icon rex-icon-system
