@@ -10,9 +10,8 @@ abstract class rex_api_function_debug extends rex_api_function
         $apiFunc = self::factory();
 
         if ($apiFunc != null) {
-            ChromePhp::group(__CLASS__);
-            ChromePhp::log('called api function "' . get_class(self::factory()) . '"');
-            ChromePhp::groupEnd();
+            $debug = rex_debug::getInstance();
+            $debug->debug('Called api function '.get_class($apiFunc));
         }
         return parent::handleCall();
     }

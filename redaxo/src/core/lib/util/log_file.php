@@ -256,6 +256,7 @@ class rex_log_entry
 
     /**
      * @return string
+     *
      */
     public function __toString()
     {

@@ -1,7 +1,5 @@
 <?php
 
-rex_extension::register('OUTPUT_FILTER', ['rex_sql_debug', 'doLog']);
-
 /**
  * Class to monitor sql queries.
  *
@@ -12,7 +10,6 @@ rex_extension::register('OUTPUT_FILTER', ['rex_sql_debug', 'doLog']);
 class rex_sql_debug extends rex_sql
 {
     private static $queries = [];
-    private static $errors = 0;
 
     /**
      * {@inheritdoc}.
@@ -20,17 +17,25 @@ class rex_sql_debug extends rex_sql
     public function setQuery($qry, array $params = [], array $options = [])
     {
         try {
+            $timer = new rex_timer();
             parent::setQuery($qry, $params, $options);
+
+            $trace = $this->getTrace();
+
+            self::$queries[] = [
+                'duration' => $timer->getDelta(),
+                'query' => $qry,
+                'connection' => $this->DBID,
+                'file'=> $trace[0],
+                'line' => $trace[1],
+            ];
+
         } catch (rex_exception $e) {
-            $trace = debug_backtrace();
-            for ($i = 0; $trace && $i < count($trace); ++$i) {
-                if (isset($trace[$i]['file']) && strpos($trace[$i]['file'], 'sql.php') === false) {
-                    $file = $trace[$i]['file'];
-                    $line = $trace[$i]['line'];
-                    break;
-                }
-            }
-            ChromePhp::error($e->getMessage() . ' in ' . $file . ' on line ' . $line);
+
+
+            // LOL
+
+
             throw $e; // re-throw exception after logging
         }
 
@@ -40,7 +45,6 @@ class rex_sql_debug extends rex_sql
     /**
      * {@inheritdoc}.
      */
-    // TODO queries using setQuery() are not logged yet!
     public function execute(array $params = [], array $options = [])
     {
         $qry = $this->stmt->queryString;
@@ -48,42 +52,34 @@ class rex_sql_debug extends rex_sql
         $timer = new rex_timer();
         parent::execute($params, $options);
 
-        $err = $errno = '';
-        if ($this->hasError()) {
-            ++self::$errors;
-            $err = parent::getError();
-            $errno = parent::getErrno();
-        }
-
+        $trace = $this->getTrace();
         self::$queries[] = [
-            'rows' => $this->getRows(),
-            'time' => $timer->getFormattedDelta(),
+            'duration' => $timer->getDelta(),
             'query' => $qry,
-            'error' => $err,
-            'errno' => $errno,
+            'connection' => $this->DBID,
+            'file'=> $trace[0],
+            'line' => $trace[1],
         ];
 
         return $this;
     }
 
-    public static function doLog()
+    public static function getDebugData()
     {
-        if (!empty(self::$queries)) {
-            $tbl = [];
-            $i = 0;
+        return self::$queries;
+    }
 
-            foreach (self::$queries as $qry) {
-                // when a extension takes longer than 5ms, send a warning
-                if (strtr($qry['time'], ',', '.') > 5) {
-                    $tbl[] = ['#' => $i, 'rows' => $qry['rows'], 'ms' => '! SLOW: ' . $qry['time'], 'query' => $qry['query']];
-                } else {
-                    $tbl[] = ['#' => $i, 'rows' => $qry['rows'], 'ms' => $qry['time'], 'query' => $qry['query']];
-                }
-                ++$i;
+    private function getTrace() {
+        $trace = debug_backtrace();
+        $file = null;
+        $line = null;
+        for ($i = 0; $trace && $i < count($trace); ++$i) {
+            if (isset($trace[$i]['file']) && strpos($trace[$i]['file'], 'sql.php') === false && strpos($trace[$i]['file'], 'sql_debug.php') === false) {
+                $file = $trace[$i]['file'];
+                $line = $trace[$i]['line'];
+                break;
             }
-
-            ChromePhp::log(__CLASS__ . ' (' . count(self::$queries) . ' queries, ' . self::$errors . ' errors)');
-            ChromePhp::table($tbl);
         }
+        return [$file, $line];
     }
 }

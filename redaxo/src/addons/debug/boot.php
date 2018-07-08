@@ -5,16 +5,13 @@
 
 $clockwork = rex_debug::getInstance();
 
-$clockwork->addDataSource(new Clockwork\DataSource\PhpDataSource());
-$storage = new Clockwork\Storage\FileStorage($this->getCachePath());
-$clockwork->setStorage($storage);
-
-//rex_sql::setFactoryClass('rex_sql_debug');
-//rex_extension::setFactoryClass('rex_extension_debug');
+rex_sql::setFactoryClass('rex_sql_debug');
+rex_extension::setFactoryClass('rex_extension_debug');
 rex_logger::setFactoryClass('rex_logger_debug');
-//rex_api_function::setFactoryClass('rex_api_function_debug');
+rex_api_function::setFactoryClass('rex_api_function_debug');
 
 rex_extension::register('OUTPUT_FILTER', function() {
+    //TODO @bloep AUF debug seite beschränken
     $clockwork = rex_debug::getInstance();
     rex_response::setHeader('X-Clockwork-Id', $clockwork->getRequest()->id);
     rex_response::setHeader('X-Clockwork-Version', rex_debug::VERSION);
